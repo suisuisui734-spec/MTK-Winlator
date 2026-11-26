@@ -1,0 +1,4 @@
+[submodule "upstream/winlator"]
+	path = upstream/winlator
+	url = https://github.com/brunodev85/winlator.git
+	branch = main
