@@ -6,7 +6,7 @@ Independent Android ARM64 launcher project focused on MediaTek Mali / Immortalis
 
 ## Goals
 - Native Android UI and launcher APK kept small
-- ARM64 target
+- ARM64 target with a device/process ABI compatibility gate (capability check only; no runtime execution)
 - Device, ABI, memory, and OpenGL renderer diagnostics
 - File picker for executable selection (selection only)
 - Local profile preferences
