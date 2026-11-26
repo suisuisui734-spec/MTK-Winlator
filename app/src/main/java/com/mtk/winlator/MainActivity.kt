@@ -32,22 +32,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.json.JSONArray
+import org.json.JSONObject
+import com.mtk.winlator.library.GameEntry
 
 class MainActivity : ComponentActivity() {
     private val prefs by lazy { getSharedPreferences("mtk_winlator", MODE_PRIVATE) }
-    private var selectedUri by mutableStateOf<String?>(null)
-    private var selectedName by mutableStateOf<String?>(null)
+    private var games by mutableStateOf<List<GameEntry>>(emptyList())
     private var profile by mutableStateOf("Balanced")
 
     private val exePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             runCatching { contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-            selectedUri = it.toString()
-            selectedName = queryDisplayName(it) ?: it.lastPathSegment ?: "Selected executable"
-            prefs.edit().putString("exe_uri", it.toString()).putString("exe_name", selectedName).apply()
+            val uriText = it.toString()
+            val title = queryDisplayName(it) ?: it.lastPathSegment ?: "Selected executable"
+            if (games.none { game -> game.executableUri == uriText }) { games = games + GameEntry(uriText, title, uriText); saveGames(games) }
         }
     }
 
+    private fun saveGames(entries: List<GameEntry>) {
+        val array = JSONArray()
+        entries.forEach { entry -> array.put(JSONObject().put("id", entry.id).put("title", entry.title).put("uri", entry.executableUri).put("profile", entry.profileId)) }
+        prefs.edit().putString("games_json", array.toString()).apply()
+    }
+    private fun loadGames(): List<GameEntry> = runCatching {
+        val stored = prefs.getString("games_json", null)
+        if (stored != null) { val array = JSONArray(stored); List(array.length()) { index -> array.getJSONObject(index).let { GameEntry(it.optString("id"), it.optString("title"), it.optString("uri"), it.optString("profile", "balanced")) } } }
+        else { val oldUri = prefs.getString("exe_uri", null); if (oldUri != null) listOf(GameEntry(oldUri, prefs.getString("exe_name", "Selected executable") ?: "Selected executable", oldUri)) else emptyList() }
+    }.getOrElse { emptyList() }
     private fun queryDisplayName(uri: Uri): String? = runCatching {
         contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
             if (c.moveToFirst()) c.getString(0) else null
@@ -56,23 +68,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        selectedUri = prefs.getString("exe_uri", null)
-        selectedName = prefs.getString("exe_name", null)
+        games = loadGames()
+        if (prefs.getString("games_json", null) == null && games.isNotEmpty()) saveGames(games)
         profile = prefs.getString("profile", "Balanced") ?: "Balanced"
         setContent {
-            MTKApp(selectedName, selectedUri, profile,
+            MTKApp(games, profile,
                 onPickExe = { exePicker.launch(arrayOf("*/*")) },
-                onClearExe = {
-                    selectedUri = null; selectedName = null
-                    prefs.edit().remove("exe_uri").remove("exe_name").apply()
-                },
+                onRemove = { entry -> games = games.filterNot { it.id == entry.id }; saveGames(games) },
                 onProfile = { p -> profile = p; prefs.edit().putString("profile", p).apply() })
         }
     }
 }
 
 @Composable
-private fun MTKApp(exeName: String?, exeUri: String?, profile: String, onPickExe: () -> Unit, onClearExe: () -> Unit, onProfile: (String) -> Unit) {
+private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Unit, onRemove: (GameEntry) -> Unit, onProfile: (String) -> Unit) {
     var page by remember { mutableIntStateOf(0) }
     val scheme = darkColorScheme(primary = Color(0xFF68DFA3), secondary = Color(0xFF87C8FF), background = Color(0xFF0D1115), surface = Color(0xFF151C22))
     MaterialTheme(colorScheme = scheme) {
@@ -84,7 +93,7 @@ private fun MTKApp(exeName: String?, exeUri: String?, profile: String, onPickExe
             }
         }) { inset ->
             when (page) {
-                0 -> GamesPage(exeName, exeUri, onPickExe, onClearExe, Modifier.padding(inset))
+                0 -> GamesPage(games, onPickExe, onRemove, Modifier.padding(inset))
                 1 -> DevicePage(Modifier.padding(inset))
                 else -> SettingsPage(profile, onProfile, Modifier.padding(inset))
             }
@@ -99,35 +108,31 @@ private fun MTKApp(exeName: String?, exeUri: String?, profile: String, onPickExe
     }
 }
 
-@Composable private fun GamesPage(name: String?, uri: String?, pickExe: () -> Unit, clearExe: () -> Unit, modifier: Modifier = Modifier) {
+@Composable private fun GamesPage(games: List<GameEntry>, pickExe: () -> Unit, remove: (GameEntry) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Header("MediaTek Mali Edition")
-        Card {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text("Runtime", fontWeight = FontWeight.Bold)
-                Text("Not installed", color = MaterialTheme.colorScheme.error)
-                Text("Wine, Box64 and the Mali graphics runtime are not integrated yet.", fontSize = 13.sp)
-                Text("Runtime installation is intentionally disabled until distributable packages and licenses are verified.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-        Button(onClick = pickExe, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text("Select Windows EXE") }
-        if (uri != null) {
-            Card {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Selected application", fontWeight = FontWeight.Bold)
-                    Text(name ?: "Executable", fontSize = 16.sp)
-                    Text(uri, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Saved on this device. Execution is not implemented in this launcher build.", fontSize = 12.sp)
-                    OutlinedButton(onClick = clearExe) { Icon(Icons.Default.Delete, null); Spacer(Modifier.width(6.dp)); Text("Remove from launcher") }
-                }
-            }
-        } else {
-            Card { Column(Modifier.padding(16.dp)) { Text("Library is empty"); Text("Choose an executable to add a saved entry.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) } }
+        Card { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text("Runtime", fontWeight = FontWeight.Bold)
+            Text("Not installed", color = MaterialTheme.colorScheme.error)
+            Text("Wine, Box64 and the Mali graphics runtime are not integrated yet.", fontSize = 13.sp)
+            Text("Runtime installation is disabled until distributable packages and licenses are verified.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } }
+        Button(onClick = pickExe, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text("Add Windows EXE") }
+        Text("Game library (${games.size})", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        if (games.isEmpty()) {
+            Card { Column(Modifier.padding(16.dp)) { Text("Library is empty"); Text("Add executable files to create saved entries.", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp) } }
+        } else games.forEach { entry ->
+            Card { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(entry.title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(entry.executableUri, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Saved entry • launching is not supported in this build.", fontSize = 12.sp)
+                OutlinedButton(onClick = { remove(entry) }) { Icon(Icons.Default.Delete, null); Spacer(Modifier.width(6.dp)); Text("Remove") }
+            } }
         }
         Text("Project status", fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Card { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text("Launcher foundation • v0.1.0")
-            Text("Native Android UI, persistent EXE selection and device information. Runtime execution remains a planned integration.", fontSize = 13.sp)
+            Text("Multi-entry library and device diagnostics. Runtime execution remains future integration.", fontSize = 13.sp)
         } }
     }
 }
