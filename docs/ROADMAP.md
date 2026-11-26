@@ -12,8 +12,9 @@
 
 ## Compatibility runtime (not yet implemented)
 - [ ] License/provenance review of Wine, Box64 and graphics components
-- [ ] Integrate compatibility core and build pipeline
-- [ ] Modular runtime packages with trusted manifest and SHA-256 validation
+- [ ] Integrate Wine/Box64 compatibility core and reproducible ARM64 build pipeline
+- [x] Modular ZIP installer engine with HTTPS, size, SHA-256, safe extraction, and app-private staging
+- [ ] Supply authenticated manifests and legally redistributable runtime packages
 - [ ] Container creation/lifecycle and per-game settings
 - [ ] Test Mali graphics backend on supported hardware
 - [ ] Touch controls and gamepad mapping
