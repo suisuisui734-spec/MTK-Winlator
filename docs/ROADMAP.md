@@ -41,3 +41,9 @@
 - Do not claim Windows program execution until runtime integration is verified
 - Verify licenses and redistribution rights for all bundled/downloaded runtime components
 - Never ship a release with an unset or development-only manifest verification key
+
+
+## Runtime inventory UI
+- Connected the read-only runtime inventory report to the launcher Games page.
+- The UI explicitly reports that no trusted release manifest is configured; it does not infer installation or readiness from files alone.
+- Inventory remains read-only and does not launch or modify runtime files.
