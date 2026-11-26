@@ -25,6 +25,7 @@
 - [x] Validated declarative ARM64 container preference model with unit tests (does not create or launch containers)
 - [x] Per-game graphics backend preference saved in the launcher library (declarative only)
 - [x] Per-game resolution and memory-limit preferences saved with validated choices (declarative only)
+- [x] Pure Kotlin mapper from saved game entries to validated container configuration, with safe deterministic IDs and unit tests (declarative only)
 - [ ] Apply graphics and memory preferences through a real container lifecycle
 - [ ] Test Mali graphics backend on supported hardware
 - [ ] Touch controls and gamepad mapping
