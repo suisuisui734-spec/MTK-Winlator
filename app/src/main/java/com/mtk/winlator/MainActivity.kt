@@ -1,6 +1,7 @@
 package com.mtk.winlator
 
 import android.content.Intent
+import android.app.ActivityManager
 import android.opengl.GLES20
 import android.opengl.EGL14
 import android.opengl.EGLConfig
@@ -12,6 +13,7 @@ import android.os.Bundle
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.ComponentActivity
+import com.mtk.winlator.diagnostics.DeviceDiagnostics
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -134,6 +136,14 @@ private fun MTKApp(exeName: String?, exeUri: String?, profile: String, onPickExe
     val renderer = remember { readOpenGlRenderer() ?: "Unavailable (GL context could not be created)" }
     val context = androidx.compose.ui.platform.LocalContext.current
     val vulkanAdvertised = context.packageManager.hasSystemFeature("android.hardware.vulkan.version")
+    val memory = DeviceDiagnostics.memory(context)
+    val storage = DeviceDiagnostics.internalStorage(context)
+    val gpuType = when {
+        renderer.contains("mali", ignoreCase = true) -> "ARM Mali detected"
+        renderer.contains("adreno", ignoreCase = true) -> "Qualcomm Adreno detected"
+        renderer.contains("powervr", ignoreCase = true) -> "PowerVR detected"
+        else -> "GPU type not classified"
+    }
     val rows = listOf(
         "Manufacturer" to Build.MANUFACTURER,
         "Model" to Build.MODEL,
@@ -143,6 +153,12 @@ private fun MTKApp(exeName: String?, exeUri: String?, profile: String, onPickExe
         "CPU cores" to Runtime.getRuntime().availableProcessors().toString(),
         "Heap limit" to "${Runtime.getRuntime().maxMemory() / 1024 / 1024} MB",
         "OpenGL renderer" to renderer,
+        "GPU classification" to gpuType,
+        "RAM total" to (memory?.let { DeviceDiagnostics.formatBytes(it.totalBytes) } ?: "Unknown"),
+        "RAM available" to (memory?.let { DeviceDiagnostics.formatBytes(it.availableBytes) } ?: "Unknown"),
+        "Low-memory state" to (memory?.lowMemory?.let { if (it) "System reports low memory" else "Normal" } ?: "Unknown"),
+        "Internal storage free" to (storage?.let { DeviceDiagnostics.formatBytes(it.first) } ?: "Unknown"),
+        "64-bit ABI support" to if (DeviceDiagnostics.is64BitCapable()) "Supported" else "Not reported",
         "Vulkan feature" to if (vulkanAdvertised) "Advertised by system" else "Not advertised"
     )
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
