@@ -66,13 +66,6 @@ class MainActivity : ComponentActivity() {
         }
     }.getOrNull()
 
-    private fun formatFileSize(size: Long?): String = when {
-        size == null -> "Size unavailable"
-        size >= 1024L * 1024L * 1024L -> String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0))
-        size >= 1024L * 1024L -> String.format("%.1f MB", size / (1024.0 * 1024.0))
-        size >= 1024L -> String.format("%.1f KB", size / 1024.0)
-        else -> "$size bytes"
-    }
 
     private fun queryDisplayName(uri: Uri): String? = runCatching {
         contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
