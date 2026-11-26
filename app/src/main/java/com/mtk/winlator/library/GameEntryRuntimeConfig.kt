@@ -11,7 +11,7 @@ import java.security.MessageDigest
 fun GameEntry.toRuntimeContainerConfig(): RuntimeContainerConfig {
     val digest = MessageDigest.getInstance("SHA-256")
         .digest((id + "|" + executableUri).toByteArray(Charsets.UTF_8))
-        .joinToString("") { byte -> "%02x".format(byte) }
+        .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     val safeTitle = title.trim().take(64).ifBlank { "Game" }
     val resolution = when (resolutionWidth to resolutionHeight) {
         960 to 540 -> RuntimeContainerConfig.Resolution(960, 540)
@@ -26,7 +26,7 @@ fun GameEntry.toRuntimeContainerConfig(): RuntimeContainerConfig {
     val memory = memoryLimitPercent.takeIf { it in setOf(50, 75, 90) } ?: 75
 
     return RuntimeContainerConfig(
-        id = "game-${digest.take(24)}",
+        id = "game-${digest.take(40)}",
         displayName = safeTitle,
         architecture = "arm64",
         graphicsBackend = backend,
