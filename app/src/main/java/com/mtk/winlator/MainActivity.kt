@@ -237,6 +237,8 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
                     RuntimeInventoryState.NOT_INSTALLED -> "Runtime not installed"
                     RuntimeInventoryState.INCOMPLETE -> "Runtime incomplete"
                     RuntimeInventoryState.FILES_PRESENT_UNVERIFIED -> "Files present • unverified"
+                    RuntimeInventoryState.FILES_MATCH_INSTALL_RECORD -> "Files match local install record"
+                    RuntimeInventoryState.INTEGRITY_MISMATCH -> "Runtime file integrity mismatch"
                     RuntimeInventoryState.INVALID_LAYOUT -> "Unsafe or invalid runtime layout"
                 },
                 color = MaterialTheme.colorScheme.error,
