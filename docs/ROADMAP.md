@@ -28,6 +28,7 @@
 - [x] Pure Kotlin mapper from saved game entries to validated container configuration, with safe deterministic IDs and unit tests (declarative only)
 - [x] App-private persistent metadata registry with schema checks, atomic writes, safe IDs, and unit tests (metadata only; no prefix or mount)
 - [x] Fail-closed runtime readiness evaluator and prerequisite status card with unit tests (reports evidence only; does not enable execution)
+- [x] Read-only runtime component inventory with safe-path/symlink checks and explicit unverified state (does not prove file integrity or compatibility)
 - [x] Synchronize saved game preferences into the metadata registry and prune stale game entries safely, with unit tests (metadata only)
 - [ ] Apply graphics and memory preferences through a real container lifecycle
 - [ ] Test Mali graphics backend on supported hardware
