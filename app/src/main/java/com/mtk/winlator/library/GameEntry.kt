@@ -5,5 +5,6 @@ data class GameEntry(
     val id: String,
     val title: String,
     val executableUri: String,
-    val profileId: String = "balanced"
+    val profileId: String = "balanced",
+    val fileSizeBytes: Long? = null
 )
