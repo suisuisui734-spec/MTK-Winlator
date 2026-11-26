@@ -18,6 +18,7 @@
 - [x] ECDSA P-256 signed-manifest verifier and fail-closed installer gate
 - [x] Build-time public-key configuration and installer factory
 - [x] Reject malformed, oversized, duplicate-ID, and non-HTTPS manifests before signature verification
+- [x] ARM64 device/process ABI compatibility gate with unit tests
 - [ ] Generate and protect the production release signing key; configure its public key in release builds
 - [ ] Supply signed manifests and legally redistributable runtime packages
 - [ ] Container creation/lifecycle and per-game settings
