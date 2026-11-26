@@ -41,6 +41,8 @@ import com.mtk.winlator.library.GameEntry
 import com.mtk.winlator.library.GameContainerConfigSynchronizer
 import com.mtk.winlator.library.isWindowsExecutableName
 import com.mtk.winlator.runtime.RuntimeContainerRegistryFactory
+import com.mtk.winlator.runtime.RuntimeComponentInventory
+import com.mtk.winlator.runtime.RuntimeInventoryState
 import com.mtk.winlator.runtime.RuntimeReadinessEvidence
 import com.mtk.winlator.runtime.RuntimeReadinessEvaluator
 import java.util.concurrent.Executors
@@ -213,6 +215,36 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
             }
             Text(
                 "This is a prerequisite report, not a runtime test. Windows execution stays disabled until all checks are backed by real installed components.",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable private fun RuntimeInventoryCard(context: Context) {
+    val report = remember(context) {
+        // The installer stores packages under filesDir/runtimes. No trusted
+        // release manifest is configured yet, so inspection must remain blocked.
+        RuntimeComponentInventory(java.io.File(context.filesDir, "runtimes")).inspect(null)
+    }
+    Card {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Runtime file inventory", fontWeight = FontWeight.Bold)
+            Text(
+                when (report.state) {
+                    RuntimeInventoryState.NOT_CONFIGURED -> "Manifest not configured"
+                    RuntimeInventoryState.NOT_INSTALLED -> "Runtime not installed"
+                    RuntimeInventoryState.INCOMPLETE -> "Runtime incomplete"
+                    RuntimeInventoryState.FILES_PRESENT_UNVERIFIED -> "Files present • unverified"
+                    RuntimeInventoryState.INVALID_LAYOUT -> "Unsafe or invalid runtime layout"
+                },
+                color = MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(report.detail, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Inventory is read-only. No runtime files are launched, and file presence alone cannot establish package integrity.",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
