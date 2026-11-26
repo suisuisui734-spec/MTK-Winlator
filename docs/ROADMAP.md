@@ -1,23 +1,25 @@
 # Roadmap
 
 ## Launcher foundation
-- [x] Native Android launcher and navigation
-- [x] SAF executable file picker (selection only)
-- [x] Device info page
-- [x] Runtime manifest data model
-- [ ] Build/test validation on device
+- [x] Compose Android launcher and navigation
+- [x] SAF executable picker with persisted URI/name
+- [x] Device/ABI/RAM diagnostics
+- [x] OpenGL renderer query using temporary EGL context
+- [x] Local profile preference persistence
+- [x] Runtime installer interface and manifest model
+- [ ] Compile in CI and test on real device
 
-## Runtime work (not yet implemented)
-- [ ] Review licenses and provenance of candidate runtime components
-- [ ] Integrate compatibility core and runtime installer
-- [ ] Runtime package verification
-- [ ] Container creation and lifecycle
-- [ ] Validated graphics backend for target Mali devices
-- [ ] Touch and gamepad mapping
-- [ ] Persisted game library/profile data
+## Runtime integration (not yet implemented)
+- [ ] Review licenses and provenance of Wine/Box64 and graphics components
+- [ ] Integrate compatibility core
+- [ ] Modular runtime download/install with checksum verification
+- [ ] Container creation, lifecycle, and per-game configuration
+- [ ] Validate renderer/backend on target Mali GPUs
+- [ ] Touch controls and gamepad mapping
+- [ ] Persisted game library, multi-game management
 
-## Release gate
-- Reproducible CI build
-- Device testing on documented MediaTek models/GPU
-- Do not claim Windows-game execution until tested
-- Verify licenses and redistribution rights for every package
+## Release gates
+- Reproducible CI build and artifact
+- Device testing on specific MediaTek models with GPU documented
+- No claim of Windows-game execution before validated runtime integration
+- License/redistribution review for every runtime package
