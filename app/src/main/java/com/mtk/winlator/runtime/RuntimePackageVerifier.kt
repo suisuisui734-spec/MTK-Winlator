@@ -30,5 +30,10 @@ object RuntimePackageVerifier {
     }
 
     fun isSecureDownloadUrl(url: String): Boolean =
-        runCatching { java.net.URI(url).scheme.equals("https", ignoreCase = true) }.getOrDefault(false)
+        runCatching {
+            val uri = java.net.URI(url)
+            uri.scheme.equals("https", ignoreCase = true) &&
+                !uri.host.isNullOrBlank() &&
+                uri.userInfo == null
+        }.getOrDefault(false)
 }
