@@ -31,6 +31,18 @@ class RuntimeManifestSignatureVerifierTest {
     }
 
     @Test
+    fun reportsOnlyParseablePinnedEcPublicKeysAsConfigured() {
+        val generator = KeyPairGenerator.getInstance("EC")
+        generator.initialize(ECGenParameterSpec("secp256r1"))
+        val pair = generator.generateKeyPair()
+        assertTrue(RuntimeManifestSignatureVerifier(
+            Base64.getEncoder().encodeToString(pair.public.encoded)
+        ).hasValidPinnedPublicKey())
+        assertFalse(RuntimeManifestSignatureVerifier("").hasValidPinnedPublicKey())
+        assertFalse(RuntimeManifestSignatureVerifier("not-a-key").hasValidPinnedPublicKey())
+    }
+
+    @Test
     fun missingPinnedKeyOrSignatureFailsClosed() {
         val manifest = sampleManifest()
         assertFalse(RuntimeManifestSignatureVerifier("").verify(manifest))
