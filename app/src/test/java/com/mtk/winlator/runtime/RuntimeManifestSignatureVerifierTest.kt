@@ -37,6 +37,17 @@ class RuntimeManifestSignatureVerifierTest {
         assertFalse(RuntimeManifestSignatureVerifier("not-a-key").verify(manifest))
     }
 
+    @Test
+    fun rejectsOversizedAndAmbiguousManifestBeforeSignatureVerification() {
+        val verifier = RuntimeManifestSignatureVerifier("not-a-key")
+        val manifest = sampleManifest()
+        assertFalse(verifier.verify(manifest.copy(version = "v".repeat(513))))
+        assertFalse(verifier.verify(manifest.copy(components = manifest.components + manifest.components)))
+        assertFalse(verifier.verify(manifest.copy(
+            components = listOf(manifest.components.first().copy(downloadUrl = "http://example.org/a.zip"))
+        )))
+    }
+
     private fun sampleManifest() = RuntimeManifest(
         id = "wine",
         version = "1.0",
