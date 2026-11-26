@@ -173,7 +173,7 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
         }
         Text("Project status", fontWeight = FontWeight.Bold, fontSize = 18.sp)
         Card { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text("Launcher foundation • v0.1.0")
+            Text("Launcher foundation • v0.1.1")
             Text("Multi-entry library and device diagnostics. Runtime execution remains future integration.", fontSize = 13.sp)
         } }
     }
@@ -263,7 +263,7 @@ private fun readOpenGlRenderer(): String? {
         } }
         Card { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("About", fontWeight = FontWeight.Bold)
-            Text("MTK Winlator launcher foundation • 0.1.0")
+            Text("MTK Winlator launcher foundation • 0.1.1")
             Text("Independent project. Not affiliated with or an official Winlator build.")
         } }
     }
