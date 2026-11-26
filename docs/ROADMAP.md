@@ -7,7 +7,7 @@
 - [x] Local profile preference
 - [x] Runtime manifest and installer interface
 - [x] SHA-256 verification helper
-- [x] CI build, unit tests, and Android lint green (through run #44)
+- [x] CI build, unit tests, and Android lint green (through run #56)
 - [ ] Test on real MediaTek device
 
 ## Compatibility runtime (not yet implemented)
@@ -17,6 +17,7 @@
 - [x] Reject duplicate and conflicting ZIP archive entry paths
 - [x] ECDSA P-256 signed-manifest verifier and fail-closed installer gate
 - [x] Build-time public-key configuration and installer factory
+- [x] Reject malformed, oversized, duplicate-ID, and non-HTTPS manifests before signature verification
 - [ ] Generate and protect the production release signing key; configure its public key in release builds
 - [ ] Supply signed manifests and legally redistributable runtime packages
 - [ ] Container creation/lifecycle and per-game settings
