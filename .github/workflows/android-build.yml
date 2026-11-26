@@ -27,26 +27,20 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
-      - name: Compile MTK launcher debug APK
-        run: gradle assembleDebug
-      - name: Run MTK launcher unit tests
-        run: gradle testDebugUnitTest
-      - name: Run MTK launcher Android lint
-        run: gradle lintDebug
-      - name: Build Winlator Mali Bionic (ARM64)
+      - name: Validate MTK integration module
+        run: |
+          gradle testDebugUnitTest
+          gradle lintDebug
+      - name: Apply MTK integration to Winlator Mali
+        run: python3 scripts/integrate_mtk_mali.py
+      - name: Build the single integrated MTK Winlator Mali APK
         working-directory: upstream/winlator
         run: gradle :app:assembleStandardDebug
-      - name: Upload MTK launcher validation APK
+      - name: Upload integrated MTK Winlator Mali APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: MTK-Winlator-launcher-validation
-          path: app/build/outputs/apk/debug/*.apk
-          retention-days: 14
-      - name: Upload Winlator Mali Bionic APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: MTK-Winlator-Mali-Bionic-debug
+          name: MTK-Winlator-Mali-integrated-debug
           path: upstream/winlator/app/build/outputs/apk/standard/debug/*.apk
+          if-no-files-found: error
           retention-days: 14
