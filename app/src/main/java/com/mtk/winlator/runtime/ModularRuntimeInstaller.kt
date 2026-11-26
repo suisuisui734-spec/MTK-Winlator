@@ -119,6 +119,7 @@ class ModularRuntimeInstaller(context: Context) : RuntimeInstaller {
 
     private fun extractSafely(archive: File, destination: File) {
         val canonicalRoot = destination.canonicalFile
+        val pathGuard = RuntimeArchivePathGuard()
         var totalWritten = 0L
         var entries = 0
         ZipInputStream(BufferedInputStream(archive.inputStream())).use { zip ->
@@ -126,7 +127,9 @@ class ModularRuntimeInstaller(context: Context) : RuntimeInstaller {
                 val entry = zip.nextEntry ?: break
                 entries++
                 check(entries <= MAX_ZIP_ENTRIES)
-                val output = File(destination, entry.name).canonicalFile
+                val safeName = pathGuard.accept(entry.name, entry.isDirectory)
+                    ?: error("Unsafe or conflicting ZIP entry path")
+                val output = File(destination, safeName).canonicalFile
                 check(output.path.startsWith(canonicalRoot.path + File.separator))
                 if (entry.isDirectory) {
                     check(output.mkdirs() || output.isDirectory)
