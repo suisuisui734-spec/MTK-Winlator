@@ -8,5 +8,9 @@ data class GameEntry(
     val profileId: String = "balanced",
     val fileSizeBytes: Long? = null,
     /** Saved preference only; it is not applied until a runtime exists. */
-    val graphicsBackend: String = "AUTO"
+    val graphicsBackend: String = "AUTO",
+    /** Declarative container preferences; not applied to a running process. */
+    val resolutionWidth: Int = 1280,
+    val resolutionHeight: Int = 720,
+    val memoryLimitPercent: Int = 75
 )
