@@ -6,10 +6,14 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: import-winlator-mali-main
+  cancel-in-progress: false
+
 jobs:
   import-source:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - name: Checkout destination repository
         uses: actions/checkout@v4
@@ -19,19 +23,32 @@ jobs:
           persist-credentials: true
 
       - name: Download pinned Winlator Mali source
+        shell: bash
         run: |
-          git clone --filter=blob:none --no-checkout https://github.com/GunaCharanTeja/WinlatorMali.git /tmp/winlator-mali
-          git -C /tmp/winlator-mali checkout 0411a4b602ed00d71bef52e6a7ccb82a8e709b1a
+          set -euo pipefail
+          SOURCE_COMMIT="0411a4b602ed00d71bef52e6a7ccb82a8e709b1a"
+          git init /tmp/winlator-mali
+          git -C /tmp/winlator-mali remote add origin https://github.com/GunaCharanTeja/WinlatorMali.git
+          git -C /tmp/winlator-mali fetch --depth=1 origin "$SOURCE_COMMIT"
+          git -C /tmp/winlator-mali checkout --detach FETCH_HEAD
+          test -f /tmp/winlator-mali/settings.gradle -o -f /tmp/winlator-mali/settings.gradle.kts
+          test -d /tmp/winlator-mali/app
 
       - name: Replace repository contents with upstream source
+        shell: bash
         run: |
+          set -euo pipefail
           rsync -a --delete \
             --exclude='/.git/' \
             --exclude='/.github/workflows/import-winlator-mali.yml' \
             /tmp/winlator-mali/ ./
+          test -f settings.gradle -o -f settings.gradle.kts
+          test -d app
 
       - name: Commit and push imported source
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
