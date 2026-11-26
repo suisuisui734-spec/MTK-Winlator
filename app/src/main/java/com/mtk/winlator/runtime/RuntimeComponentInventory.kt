@@ -14,6 +14,8 @@ enum class RuntimeInventoryState {
     NOT_INSTALLED,
     INCOMPLETE,
     FILES_PRESENT_UNVERIFIED,
+    FILES_MATCH_INSTALL_RECORD,
+    INTEGRITY_MISMATCH,
     INVALID_LAYOUT
 }
 
@@ -123,9 +125,24 @@ class RuntimeComponentInventory(private val runtimeRoot: File) {
                 }
                 present += component.id
             }
+            val integrityRecord = File(installDir, "install-files.sha256")
+            if (!integrityRecord.exists()) {
+                return@runCatching RuntimeInventoryReport(
+                    RuntimeInventoryState.FILES_PRESENT_UNVERIFIED,
+                    "Component files exist, but no post-install integrity record is available.",
+                    present
+                )
+            }
+            if (!RuntimeFileIntegrity.matchesRecord(installDir, present, integrityRecord)) {
+                return@runCatching RuntimeInventoryReport(
+                    RuntimeInventoryState.INTEGRITY_MISMATCH,
+                    "One or more extracted files differ from the local post-install inventory.",
+                    present
+                )
+            }
             RuntimeInventoryReport(
-                RuntimeInventoryState.FILES_PRESENT_UNVERIFIED,
-                "Expected folders and metadata are present, but extracted file integrity and runtime compatibility are not verified.",
+                RuntimeInventoryState.FILES_MATCH_INSTALL_RECORD,
+                "Extracted files match the local post-install inventory. This record is not a signed trust anchor and does not prove runtime compatibility.",
                 present
             )
         }.getOrElse {
