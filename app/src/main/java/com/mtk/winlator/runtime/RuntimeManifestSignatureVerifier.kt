@@ -1,6 +1,6 @@
 package com.mtk.winlator.runtime
 
-import android.util.Base64
+import java.util.Base64
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.security.KeyFactory
@@ -20,8 +20,8 @@ class RuntimeManifestSignatureVerifier(
     fun verify(manifest: RuntimeManifest): Boolean {
         if (pinnedPublicKeyBase64.isBlank() || manifest.signatureBase64.isBlank()) return false
         return runCatching {
-            val keyBytes = Base64.decode(pinnedPublicKeyBase64, Base64.DEFAULT)
-            val signatureBytes = Base64.decode(manifest.signatureBase64, Base64.DEFAULT)
+            val keyBytes = Base64.getDecoder().decode(pinnedPublicKeyBase64)
+            val signatureBytes = Base64.getDecoder().decode(manifest.signatureBase64)
             val publicKey = KeyFactory.getInstance("EC")
                 .generatePublic(X509EncodedKeySpec(keyBytes))
             Signature.getInstance("SHA256withECDSA").run {
