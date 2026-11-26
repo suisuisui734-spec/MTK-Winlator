@@ -81,7 +81,12 @@ class MainActivity : ComponentActivity() {
     private fun normalizeGraphicsBackend(value: String): String =
         value.uppercase().takeIf { it in setOf("AUTO", "OPENGL", "VULKAN") } ?: "AUTO"
 
-    private fun normalizeResolution(width: Int, height: Int): Pair<Int, Int> =\n        if (width to height in listOf(960 to 540, 1280 to 720, 1600 to 900)) width to height else 1280 to 720\n\n    private fun normalizeMemoryLimit(value: Int): Int = value.takeIf { it in setOf(50, 75, 90) } ?: 75\n\n    private fun saveGames(entries: List<GameEntry>) {
+    private fun normalizeResolution(width: Int, height: Int): Pair<Int, Int> =
+        if (width to height in listOf(960 to 540, 1280 to 720, 1600 to 900)) width to height else 1280 to 720
+
+    private fun normalizeMemoryLimit(value: Int): Int = value.takeIf { it in setOf(50, 75, 90) } ?: 75
+
+    private fun saveGames(entries: List<GameEntry>) {
         val array = JSONArray()
         entries.forEach { entry -> array.put(JSONObject().put("id", entry.id).put("title", entry.title).put("uri", entry.executableUri).put("profile", entry.profileId).put("size", entry.fileSizeBytes ?: -1L).put("graphics_backend", normalizeGraphicsBackend(entry.graphicsBackend)).put("resolution_width", normalizeResolution(entry.resolutionWidth, entry.resolutionHeight).first).put("resolution_height", normalizeResolution(entry.resolutionWidth, entry.resolutionHeight).second).put("memory_limit_percent", normalizeMemoryLimit(entry.memoryLimitPercent))) }
         prefs.edit().putString("games_json", array.toString()).apply()
@@ -114,7 +119,9 @@ class MainActivity : ComponentActivity() {
                 onPickExe = { exePicker.launch(arrayOf("*/*")) },
                 onRemove = { entry -> games = games.filterNot { it.id == entry.id }; saveGames(games) },
                 onGameProfile = { entry, p -> games = games.map { if (it.id == entry.id) it.copy(profileId = p.lowercase()) else it }; saveGames(games) },
-                onGameGraphicsBackend = { entry, backend -> games = games.map { if (it.id == entry.id) it.copy(graphicsBackend = normalizeGraphicsBackend(backend)) else it }; saveGames(games) },\n                onGameResolution = { entry, width, height -> games = games.map { if (it.id == entry.id) it.copy(resolutionWidth = width, resolutionHeight = height) else it }; saveGames(games) },\n                onGameMemoryLimit = { entry, percent -> games = games.map { if (it.id == entry.id) it.copy(memoryLimitPercent = normalizeMemoryLimit(percent)) else it }; saveGames(games) },
+                onGameGraphicsBackend = { entry, backend -> games = games.map { if (it.id == entry.id) it.copy(graphicsBackend = normalizeGraphicsBackend(backend)) else it }; saveGames(games) },
+                onGameResolution = { entry, width, height -> games = games.map { if (it.id == entry.id) it.copy(resolutionWidth = width, resolutionHeight = height) else it }; saveGames(games) },
+                onGameMemoryLimit = { entry, percent -> games = games.map { if (it.id == entry.id) it.copy(memoryLimitPercent = normalizeMemoryLimit(percent)) else it }; saveGames(games) },
                 onProfile = { p -> profile = p; prefs.edit().putString("profile", p).apply() })
         }
     }
@@ -182,7 +189,23 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
                         else OutlinedButton(onClick = { setGraphicsBackend(entry, backend) }) { Text(backend, fontSize = 10.sp) }
                     }
                 }
-                Text("Container resolution", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)\n                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {\n                    listOf(960 to 540, 1280 to 720, 1600 to 900).forEach { (width, height) ->\n                        val selected = entry.resolutionWidth == width && entry.resolutionHeight == height\n                        val label = "${width}x${height}"\n                        if (selected) Button(onClick = { setResolution(entry, width, height) }) { Text(label, fontSize = 10.sp) }\n                        else OutlinedButton(onClick = { setResolution(entry, width, height) }) { Text(label, fontSize = 10.sp) }\n                    }\n                }\n                Text("Memory limit preference", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)\n                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {\n                    listOf(50, 75, 90).forEach { percent ->\n                        if (entry.memoryLimitPercent == percent) Button(onClick = { setMemoryLimit(entry, percent) }) { Text("$percent%", fontSize = 10.sp) }\n                        else OutlinedButton(onClick = { setMemoryLimit(entry, percent) }) { Text("$percent%", fontSize = 10.sp) }\n                    }\n                }\n                Text("Saved preferences only; no graphics backend or container limits are applied until runtime integration.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Container resolution", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(960 to 540, 1280 to 720, 1600 to 900).forEach { (width, height) ->
+                        val selected = entry.resolutionWidth == width && entry.resolutionHeight == height
+                        val label = "${width}x${height}"
+                        if (selected) Button(onClick = { setResolution(entry, width, height) }) { Text(label, fontSize = 10.sp) }
+                        else OutlinedButton(onClick = { setResolution(entry, width, height) }) { Text(label, fontSize = 10.sp) }
+                    }
+                }
+                Text("Memory limit preference", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(50, 75, 90).forEach { percent ->
+                        if (entry.memoryLimitPercent == percent) Button(onClick = { setMemoryLimit(entry, percent) }) { Text("$percent%", fontSize = 10.sp) }
+                        else OutlinedButton(onClick = { setMemoryLimit(entry, percent) }) { Text("$percent%", fontSize = 10.sp) }
+                    }
+                }
+                Text("Saved preferences only; no graphics backend or container limits are applied until runtime integration.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedButton(onClick = { remove(entry) }) { Icon(Icons.Default.Delete, null); Spacer(Modifier.width(6.dp)); Text("Remove") }
             } }
         }
