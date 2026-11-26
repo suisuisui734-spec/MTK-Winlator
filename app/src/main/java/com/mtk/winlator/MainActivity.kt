@@ -75,13 +75,14 @@ class MainActivity : ComponentActivity() {
             MTKApp(games, profile,
                 onPickExe = { exePicker.launch(arrayOf("*/*")) },
                 onRemove = { entry -> games = games.filterNot { it.id == entry.id }; saveGames(games) },
+                onGameProfile = { entry, p -> games = games.map { if (it.id == entry.id) it.copy(profileId = p.lowercase()) else it }; saveGames(games) },
                 onProfile = { p -> profile = p; prefs.edit().putString("profile", p).apply() })
         }
     }
 }
 
 @Composable
-private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Unit, onRemove: (GameEntry) -> Unit, onProfile: (String) -> Unit) {
+private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Unit, onRemove: (GameEntry) -> Unit, onGameProfile: (GameEntry, String) -> Unit, onProfile: (String) -> Unit) {
     var page by remember { mutableIntStateOf(0) }
     val scheme = darkColorScheme(primary = Color(0xFF68DFA3), secondary = Color(0xFF87C8FF), background = Color(0xFF0D1115), surface = Color(0xFF151C22))
     MaterialTheme(colorScheme = scheme) {
@@ -93,7 +94,7 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
             }
         }) { inset ->
             when (page) {
-                0 -> GamesPage(games, onPickExe, onRemove, Modifier.padding(inset))
+                0 -> GamesPage(games, onPickExe, onRemove, onGameProfile, Modifier.padding(inset))
                 1 -> DevicePage(Modifier.padding(inset))
                 else -> SettingsPage(profile, onProfile, Modifier.padding(inset))
             }
@@ -108,7 +109,7 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
     }
 }
 
-@Composable private fun GamesPage(games: List<GameEntry>, pickExe: () -> Unit, remove: (GameEntry) -> Unit, modifier: Modifier = Modifier) {
+@Composable private fun GamesPage(games: List<GameEntry>, pickExe: () -> Unit, remove: (GameEntry) -> Unit, setProfile: (GameEntry, String) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Header("MediaTek Mali Edition")
         Card { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
@@ -125,6 +126,14 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
             Card { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(entry.title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Text(entry.executableUri, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Profile preference (saved per game)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("Lite", "Balanced", "Performance").forEach { p ->
+                        val selected = entry.profileId.equals(p, ignoreCase = true)
+                        if (selected) Button(onClick = { setProfile(entry, p) }) { Text(p, fontSize = 11.sp) }
+                        else OutlinedButton(onClick = { setProfile(entry, p) }) { Text(p, fontSize = 11.sp) }
+                    }
+                }
                 Text("Saved entry • launching is not supported in this build.", fontSize = 12.sp)
                 OutlinedButton(onClick = { remove(entry) }) { Icon(Icons.Default.Delete, null); Spacer(Modifier.width(6.dp)); Text("Remove") }
             } }
