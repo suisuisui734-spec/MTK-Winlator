@@ -1,6 +1,6 @@
 package com.mtk.winlator.runtime
 
-import android.util.Base64
+import java.util.Base64
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,12 +17,12 @@ class RuntimeManifestSignatureVerifierTest {
         val unsigned = sampleManifest()
         val signer = Signature.getInstance("SHA256withECDSA")
         val canonicalizer = RuntimeManifestSignatureVerifier(
-            Base64.encodeToString(pair.public.encoded, Base64.NO_WRAP)
+            Base64.getEncoder().encodeToString(pair.public.encoded)
         )
         signer.initSign(pair.private)
         signer.update(canonicalizer.canonicalPayload(unsigned))
         val signed = unsigned.copy(
-            signatureBase64 = Base64.encodeToString(signer.sign(), Base64.NO_WRAP)
+            signatureBase64 = Base64.getEncoder().encodeToString(signer.sign())
         )
 
         assertTrue(canonicalizer.verify(signed))
