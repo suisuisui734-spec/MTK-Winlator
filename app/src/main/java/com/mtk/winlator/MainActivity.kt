@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.mtk.winlator.diagnostics.DeviceDiagnostics
 import androidx.activity.compose.setContent
@@ -57,10 +58,20 @@ class MainActivity : ComponentActivity() {
 
     private val exePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
+            val title = queryDisplayName(it) ?: it.lastPathSegment ?: "Selected file"
+            if (!title.substringAfterLast('.', "").equals("exe", ignoreCase = true)) {
+                Toast.makeText(this, "Please select a Windows .exe file.", Toast.LENGTH_LONG).show()
+                return@let
+            }
             runCatching { contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
             val uriText = it.toString()
-            val title = queryDisplayName(it) ?: it.lastPathSegment ?: "Selected executable"
-            if (games.none { game -> game.executableUri == uriText }) { games = games + GameEntry(uriText, title, uriText, fileSizeBytes = queryFileSize(it)); saveGames(games) }
+            if (games.any { game -> game.executableUri == uriText }) {
+                Toast.makeText(this, "This file is already in your library.", Toast.LENGTH_SHORT).show()
+            } else {
+                games = games + GameEntry(uriText, title, uriText, fileSizeBytes = queryFileSize(it))
+                saveGames(games)
+                Toast.makeText(this, "Added to library. Runtime launching is not available yet.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
