@@ -43,6 +43,9 @@ class ModularRuntimeInstaller(
                 "id=${manifest.id}\nversion=${manifest.version}\narchitecture=${manifest.architecture}\n" +
                     validation.joinToString("\n") { "${it.id}=${it.version}:${it.sha256.lowercase()}" }
             )
+            val integrityRecord = RuntimeFileIntegrity.createRecord(staging, validation.map { it.id })
+                ?: error("Could not create runtime file integrity record")
+            File(staging, "install-files.sha256").writeText(integrityRecord)
             val backup = File(root, ".${manifest.id}.previous")
             backup.deleteRecursively()
             if (destination.exists()) check(destination.renameTo(backup))
@@ -67,7 +70,12 @@ class ModularRuntimeInstaller(
         val expected = "id=${manifest.id}\nversion=${manifest.version}\narchitecture=${manifest.architecture}\n" +
             components.joinToString("\n") { "${it.id}=${it.version}:${it.sha256.lowercase()}" }
         return runCatching { marker.readText() == expected }.getOrDefault(false) &&
-            components.all { File(installed, it.id).isDirectory }
+            components.all { File(installed, it.id).isDirectory } &&
+            RuntimeFileIntegrity.matchesRecord(
+                installed,
+                components.map { it.id },
+                File(installed, "install-files.sha256")
+            )
     }
 
     override suspend fun remove(runtimeId: String): Boolean {
