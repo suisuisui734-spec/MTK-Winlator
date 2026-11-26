@@ -1,25 +1,26 @@
 # Roadmap
 
 ## Launcher foundation
-- [x] Compose Android launcher and navigation
-- [x] SAF executable picker with persisted URI/name
-- [x] Device/ABI/RAM diagnostics
-- [x] OpenGL renderer query using temporary EGL context
-- [x] Local profile preference persistence
-- [x] Runtime installer interface and manifest model
-- [ ] Compile in CI and test on real device
+- [x] Compose launcher and navigation
+- [x] SAF EXE picker and persistable URI/name
+- [x] Device, ABI, heap, and OpenGL renderer diagnostics
+- [x] Local profile preference
+- [x] Runtime manifest and installer interface
+- [x] SHA-256 verification helper (planned/in progress)
+- [ ] Confirm CI build and lint green
+- [ ] Test on real MediaTek device
 
-## Runtime integration (not yet implemented)
-- [ ] Review licenses and provenance of Wine/Box64 and graphics components
-- [ ] Integrate compatibility core
-- [ ] Modular runtime download/install with checksum verification
-- [ ] Container creation, lifecycle, and per-game configuration
-- [ ] Validate renderer/backend on target Mali GPUs
+## Compatibility runtime (not yet implemented)
+- [ ] License/provenance review of Wine, Box64 and graphics components
+- [ ] Integrate compatibility core and build pipeline
+- [ ] Modular runtime packages with trusted manifest and SHA-256 validation
+- [ ] Container creation/lifecycle and per-game settings
+- [ ] Test Mali graphics backend on supported hardware
 - [ ] Touch controls and gamepad mapping
-- [ ] Persisted game library, multi-game management
+- [ ] Multi-game persistent library
 
 ## Release gates
-- Reproducible CI build and artifact
-- Device testing on specific MediaTek models with GPU documented
-- No claim of Windows-game execution before validated runtime integration
-- License/redistribution review for every runtime package
+- Reproducible build with downloadable CI APK artifact
+- Device test on documented chipset/GPU
+- Do not claim Windows program execution until runtime integration is verified
+- Verify licenses and redistribution rights for all bundled/downloaded runtime components
