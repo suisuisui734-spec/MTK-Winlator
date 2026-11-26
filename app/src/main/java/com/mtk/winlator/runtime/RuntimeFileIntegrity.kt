@@ -37,7 +37,7 @@ object RuntimeFileIntegrity {
                             if (records.size >= MAX_FILES) return null
                             val relative = child.relativeTo(root).invariantSeparatorsPath
                             if (relative.any { it == '\n' || it == '\r' || it == '\t' || it == '=' }) return null
-                            records += "\$relative=\${sha256(child)}"
+                            records += relative + "=" + sha256(child)
                         } else return null
                     }
                 }
