@@ -53,3 +53,14 @@
 - Runtime installation now records a deterministic SHA-256 inventory for extracted component files after the signed archive digest has been checked.
 - Installer verification and the read-only inventory compare current extracted files against that local record, detecting changed, missing, or added files.
 - A matching local record is not a cryptographic trust anchor against an attacker who can rewrite app-private data; it is a post-install change detector only. Runtime compatibility and Windows execution remain blocked.
+
+
+## Upstream runtime source integration
+
+- [x] Pin the upstream Winlator repository as a recursive Git submodule at `upstream/winlator`.
+- [x] Update CI checkout to initialize nested upstream submodules.
+- [x] Add a separate upstream Winlator baseline APK build to CI, alongside the MTK launcher build.
+- [ ] Confirm upstream baseline build succeeds in CI and publish its artifact.
+- [ ] Inspect upstream graphics-driver selection and identify a Mali-compatible VirGL/Vortek path.
+- [ ] Implement and device-test Mali-specific graphics selection in the upstream app.
+- [ ] Merge the required upstream runtime into the MTK distribution after license/provenance review.
