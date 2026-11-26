@@ -74,6 +74,33 @@ class RuntimeComponentInventoryTest {
     }
 
     @Test
+    fun matchingInstallRecordIsReportedButNotCryptographicallyVerified() {
+        val root = createTempDir()
+        try {
+            val m = manifest()
+            val install = root.resolve(m.id).apply { mkdirs() }
+            writeMarker(install, m)
+            m.components.forEach { component ->
+                install.resolve(component.id).mkdirs()
+                install.resolve(component.id).resolve("runtime.bin").writeText(component.id)
+            }
+            val record = RuntimeFileIntegrity.createRecord(install, m.components.map { it.id })!!
+            install.resolve("install-files.sha256").writeText(record)
+            assertEquals(
+                RuntimeInventoryState.FILES_MATCH_INSTALL_RECORD,
+                RuntimeComponentInventory(root).inspect(m).state
+            )
+            install.resolve("wine/runtime.bin").writeText("changed")
+            assertEquals(
+                RuntimeInventoryState.INTEGRITY_MISMATCH,
+                RuntimeComponentInventory(root).inspect(m).state
+            )
+        } finally {
+            root.deleteRecursively()
+        }
+    }
+
+    @Test
     fun mismatchedMarkerIsRejected() {
         val root = createTempDir()
         try {
