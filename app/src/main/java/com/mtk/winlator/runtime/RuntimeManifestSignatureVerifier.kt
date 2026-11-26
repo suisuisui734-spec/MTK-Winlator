@@ -17,6 +17,16 @@ import java.security.spec.X509EncodedKeySpec
 class RuntimeManifestSignatureVerifier(
     private val pinnedPublicKeyBase64: String
 ) {
+    /** Returns true only when the configured Base64 key parses as an EC public key. */
+    fun hasValidPinnedPublicKey(): Boolean {
+        if (pinnedPublicKeyBase64.isBlank()) return false
+        return runCatching {
+            val keyBytes = Base64.getDecoder().decode(pinnedPublicKeyBase64)
+            KeyFactory.getInstance("EC").generatePublic(X509EncodedKeySpec(keyBytes))
+            true
+        }.getOrDefault(false)
+    }
+
     fun verify(manifest: RuntimeManifest): Boolean {
         if (pinnedPublicKeyBase64.isBlank() || manifest.signatureBase64.isBlank()) return false
         if (!isStructurallySafe(manifest)) return false
