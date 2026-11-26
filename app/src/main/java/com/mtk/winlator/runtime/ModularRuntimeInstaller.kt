@@ -73,12 +73,12 @@ class ModularRuntimeInstaller(context: Context) : RuntimeInstaller {
     }
 
     private fun validate(manifest: RuntimeManifest): List<RuntimeComponent>? {
-        if (!manifest.id.matches(Regex("^[a-zA-Z0-9._-]{1,64}$"))) return null
+        if (manifest.id == "." || manifest.id == ".." || !manifest.id.matches(Regex("^[a-zA-Z0-9._-]{1,64}$"))) return null
         if (manifest.version.isBlank() || manifest.architecture != "arm64-v8a") return null
         if (manifest.components.isEmpty() || manifest.components.size > MAX_COMPONENTS) return null
         val ids = mutableSetOf<String>()
         for (component in manifest.components) {
-            if (!component.id.matches(Regex("^[a-zA-Z0-9._-]{1,64}$")) || !ids.add(component.id)) return null
+            if (component.id == "." || component.id == ".." || !component.id.matches(Regex("^[a-zA-Z0-9._-]{1,64}$")) || !ids.add(component.id)) return null
             if (component.version.isBlank() || component.licenseId.isBlank()) return null
             if (component.sizeBytes !in 1..MAX_ARCHIVE_BYTES) return null
             if (!RuntimePackageVerifier.isSecureDownloadUrl(component.downloadUrl)) return null
