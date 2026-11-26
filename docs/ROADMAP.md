@@ -27,6 +27,7 @@
 - [x] Per-game resolution and memory-limit preferences saved with validated choices (declarative only)
 - [x] Pure Kotlin mapper from saved game entries to validated container configuration, with safe deterministic IDs and unit tests (declarative only)
 - [x] App-private persistent metadata registry with schema checks, atomic writes, safe IDs, and unit tests (metadata only; no prefix or mount)
+- [x] Synchronize saved game preferences into the metadata registry and prune stale game entries safely, with unit tests (metadata only)
 - [ ] Apply graphics and memory preferences through a real container lifecycle
 - [ ] Test Mali graphics backend on supported hardware
 - [ ] Touch controls and gamepad mapping
