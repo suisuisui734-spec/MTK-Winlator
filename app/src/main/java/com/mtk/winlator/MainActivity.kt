@@ -41,6 +41,8 @@ import com.mtk.winlator.library.GameEntry
 import com.mtk.winlator.library.GameContainerConfigSynchronizer
 import com.mtk.winlator.library.isWindowsExecutableName
 import com.mtk.winlator.runtime.RuntimeContainerRegistryFactory
+import com.mtk.winlator.runtime.RuntimeReadinessEvidence
+import com.mtk.winlator.runtime.RuntimeReadinessEvaluator
 import java.util.concurrent.Executors
 
 
@@ -174,6 +176,50 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
     }
 }
 
+@Composable private fun RuntimeReadinessCard() {
+    val evidence = remember {
+        RuntimeReadinessEvidence(
+            arm64DeviceSupported = Build.SUPPORTED_64_BIT_ABIS.any { it == "arm64-v8a" },
+            arm64ProcessSupported = android.os.Process.is64Bit(),
+            // These remain false until a production key and verified packages are supplied.
+            productionManifestKeyConfigured = false,
+            signedRuntimeManifestAvailable = false,
+            runtimePackageInstalled = false,
+            wineAvailable = false,
+            box64Available = false,
+            graphicsBackendAvailable = false
+        )
+    }
+    val report = remember(evidence) { RuntimeReadinessEvaluator.evaluate(evidence) }
+    Card {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text("Runtime readiness", fontWeight = FontWeight.Bold)
+            Text(
+                if (report.isReadyForWindowsExecution) "Ready for execution"
+                else "${report.readyCount}/${report.totalCount} prerequisites ready • execution blocked",
+                color = if (report.isReadyForWindowsExecution) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                fontWeight = FontWeight.SemiBold
+            )
+            report.checks.forEach { check ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.weight(1f)) {
+                        Text(check.title, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                        Text(check.detail, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(if (check.ready) "READY" else "BLOCKED",
+                        fontSize = 10.sp,
+                        color = if (check.ready) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                }
+            }
+            Text(
+                "This is a prerequisite report, not a runtime test. Windows execution stays disabled until all checks are backed by real installed components.",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 @Composable private fun Header(subtitle: String) {
     Column(Modifier.padding(bottom = 6.dp)) {
         Text("MTK WINLATOR", fontSize = 25.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
@@ -190,6 +236,7 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
             Text("Wine, Box64 and the Mali graphics runtime are not integrated yet.", fontSize = 13.sp)
             Text("Runtime installation is disabled until distributable packages and licenses are verified.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } }
+        RuntimeReadinessCard()
         Button(onClick = pickExe, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Default.Add, null); Spacer(Modifier.width(8.dp)); Text("Add Windows EXE") }
         Text("Game library (${games.size})", fontWeight = FontWeight.Bold, fontSize = 18.sp)
         if (games.isEmpty()) {
