@@ -1,4 +1,4 @@
 [submodule "upstream/winlator"]
 	path = upstream/winlator
-	url = https://github.com/brunodev85/winlator.git
-	branch = main
+	url = https://github.com/GunaCharanTeja/WinlatorMali.git
+	branch = bionic-mali-1.2
