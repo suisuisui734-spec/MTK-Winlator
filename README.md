@@ -38,3 +38,6 @@ against the upstream runtime, especially its graphics-driver selection and VirGL
 
 Upstream source: https://github.com/brunodev85/winlator
 Pinned upstream revision: `30aafbdb9eea47b92669201621e03cd2cf04540d`
+
+
+<!-- import-trigger: upstream Winlator Mali source import -->
