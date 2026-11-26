@@ -1,4 +1,3 @@
-[submodule "upstream/winlator"]
-	path = upstream/winlator
-	url = https://github.com/GunaCharanTeja/WinlatorMali.git
-	branch = bionic-mali-1.2
+[submodule "app/src/main/cpp/adrenotools"]
+	path = app/src/main/cpp/adrenotools
+	url = https://github.com/Pipetto-crypto/libadrenotools.git
