@@ -11,23 +11,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install upstream Android native toolchain
+        run: sdkmanager "cmake;3.22.1" "ndk;24.0.8215888"
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - name: Compile debug APK
+      - name: Compile MTK launcher debug APK
         run: gradle assembleDebug
-      - name: Run unit tests
+      - name: Run MTK launcher unit tests
         run: gradle testDebugUnitTest
-      - name: Run Android lint
+      - name: Run MTK launcher Android lint
         run: gradle lintDebug
-      - name: Upload debug APK
+      - name: Compile upstream Winlator baseline APK
+        working-directory: upstream/winlator/app
+        run: gradle assembleDebug
+      - name: Upload MTK launcher debug APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: MTK-Winlator-debug
+          name: MTK-Winlator-launcher-debug
           path: app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+      - name: Upload upstream Winlator baseline APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Winlator-upstream-baseline-debug
+          path: upstream/winlator/app/app/build/outputs/apk/debug/*.apk
           retention-days: 14
