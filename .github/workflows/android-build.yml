@@ -21,32 +21,32 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
-      - name: Install upstream Android native toolchain
+      - name: Install Mali runtime native toolchain
         run: |
-          sdkmanager --install "cmake;3.22.1" "ndk;24.0.8215888"
+          sdkmanager --install "platforms;android-34" "build-tools;35.0.0" "cmake;3.22.1" "ndk;29.0.14206865"
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.11.1'
+          gradle-version: '8.10.2'
       - name: Compile MTK launcher debug APK
         run: gradle assembleDebug
       - name: Run MTK launcher unit tests
         run: gradle testDebugUnitTest
       - name: Run MTK launcher Android lint
         run: gradle lintDebug
-      - name: Compile upstream Winlator baseline APK
-        working-directory: upstream/winlator/app
-        run: gradle assembleDebug
-      - name: Upload MTK launcher debug APK
+      - name: Build Winlator Mali Bionic (ARM64)
+        working-directory: upstream/winlator
+        run: gradle :app:assembleStandardDebug
+      - name: Upload MTK launcher validation APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: MTK-Winlator-launcher-debug
+          name: MTK-Winlator-launcher-validation
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 14
-      - name: Upload upstream Winlator baseline debug APK
+      - name: Upload Winlator Mali Bionic APK
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Winlator-upstream-baseline-debug
-          path: upstream/winlator/app/app/build/outputs/apk/debug/*.apk
+          name: MTK-Winlator-Mali-Bionic-debug
+          path: upstream/winlator/app/build/outputs/apk/standard/debug/*.apk
           retention-days: 14
