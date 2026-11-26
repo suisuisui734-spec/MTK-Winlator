@@ -14,10 +14,14 @@ import java.util.zip.ZipInputStream
  * A manifest must be supplied by trusted app code. HTTPS and SHA-256 checks do
  * not authenticate a manifest that an attacker can replace.
  */
-class ModularRuntimeInstaller(context: Context) : RuntimeInstaller {
+class ModularRuntimeInstaller(
+    context: Context,
+    private val manifestVerifier: RuntimeManifestSignatureVerifier
+) : RuntimeInstaller {
     private val root = File(context.filesDir, "runtimes")
 
     override suspend fun install(manifest: RuntimeManifest): RuntimeInstallState {
+        if (!manifestVerifier.verify(manifest)) return RuntimeInstallState.FAILED
         val validation = validate(manifest) ?: return RuntimeInstallState.FAILED
         val staging = File(root, ".${manifest.id}.staging")
         val destination = File(root, manifest.id)
@@ -55,6 +59,7 @@ class ModularRuntimeInstaller(context: Context) : RuntimeInstaller {
     }
 
     override suspend fun verify(manifest: RuntimeManifest): Boolean {
+        if (!manifestVerifier.verify(manifest)) return false
         val components = validate(manifest) ?: return false
         val installed = File(root, manifest.id)
         val marker = File(installed, "install-manifest.txt")
