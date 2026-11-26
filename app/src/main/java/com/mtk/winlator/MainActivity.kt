@@ -163,7 +163,11 @@ private fun readOpenGlRenderer(): String? {
         if (display == EGL14.EGL_NO_DISPLAY) return null
         val versions = IntArray(2)
         if (!EGL14.eglInitialize(display, versions, 0, versions, 1)) return null
-        val attrs = intArrayOf(EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, EGL14.EGL_NONE)
+        val attrs = intArrayOf(
+            EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+            EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
+            EGL14.EGL_NONE
+        )
         val configs = arrayOfNulls<EGLConfig>(1)
         val count = IntArray(1)
         if (!EGL14.eglChooseConfig(display, attrs, 0, configs, 0, configs.size, count, 0) || count[0] == 0) return null
