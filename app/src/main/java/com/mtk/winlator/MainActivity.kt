@@ -46,20 +46,34 @@ class MainActivity : ComponentActivity() {
             runCatching { contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
             val uriText = it.toString()
             val title = queryDisplayName(it) ?: it.lastPathSegment ?: "Selected executable"
-            if (games.none { game -> game.executableUri == uriText }) { games = games + GameEntry(uriText, title, uriText); saveGames(games) }
+            if (games.none { game -> game.executableUri == uriText }) { games = games + GameEntry(uriText, title, uriText, fileSizeBytes = queryFileSize(it)); saveGames(games) }
         }
     }
 
     private fun saveGames(entries: List<GameEntry>) {
         val array = JSONArray()
-        entries.forEach { entry -> array.put(JSONObject().put("id", entry.id).put("title", entry.title).put("uri", entry.executableUri).put("profile", entry.profileId)) }
+        entries.forEach { entry -> array.put(JSONObject().put("id", entry.id).put("title", entry.title).put("uri", entry.executableUri).put("profile", entry.profileId).put("size", entry.fileSizeBytes ?: -1L)) }
         prefs.edit().putString("games_json", array.toString()).apply()
     }
     private fun loadGames(): List<GameEntry> = runCatching {
         val stored = prefs.getString("games_json", null)
-        if (stored != null) { val array = JSONArray(stored); List(array.length()) { index -> array.getJSONObject(index).let { GameEntry(it.optString("id"), it.optString("title"), it.optString("uri"), it.optString("profile", "balanced")) } } }
+        if (stored != null) { val array = JSONArray(stored); List(array.length()) { index -> array.getJSONObject(index).let { GameEntry(it.optString("id"), it.optString("title"), it.optString("uri"), it.optString("profile", "balanced"), it.optLong("size", -1L).takeIf { size -> size >= 0L }) } } }
         else { val oldUri = prefs.getString("exe_uri", null); if (oldUri != null) listOf(GameEntry(oldUri, prefs.getString("exe_name", "Selected executable") ?: "Selected executable", oldUri)) else emptyList() }
     }.getOrElse { emptyList() }
+    private fun queryFileSize(uri: Uri): Long? = runCatching {
+        contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0).takeIf { it >= 0L } else null
+        }
+    }.getOrNull()
+
+    private fun formatFileSize(size: Long?): String = when {
+        size == null -> "Size unavailable"
+        size >= 1024L * 1024L * 1024L -> String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0))
+        size >= 1024L * 1024L -> String.format("%.1f MB", size / (1024.0 * 1024.0))
+        size >= 1024L -> String.format("%.1f KB", size / 1024.0)
+        else -> "$size bytes"
+    }
+
     private fun queryDisplayName(uri: Uri): String? = runCatching {
         contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
             if (c.moveToFirst()) c.getString(0) else null
@@ -125,6 +139,7 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
         } else games.forEach { entry ->
             Card { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(entry.title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("File size: ${formatFileSize(entry.fileSizeBytes)}", fontSize = 12.sp)
                 Text(entry.executableUri, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("Profile preference (saved per game)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
