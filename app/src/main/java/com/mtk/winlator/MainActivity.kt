@@ -183,8 +183,10 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
         RuntimeReadinessEvidence(
             arm64DeviceSupported = Build.SUPPORTED_64_BIT_ABIS.any { it == "arm64-v8a" },
             arm64ProcessSupported = android.os.Process.is64Bit(),
-            // These remain false until a production key and verified packages are supplied.
-            productionManifestKeyConfigured = false,
+            // Parse the build-pinned key; a non-empty but malformed value is not trusted.
+            productionManifestKeyConfigured = com.mtk.winlator.runtime.RuntimeManifestSignatureVerifier(
+                BuildConfig.RUNTIME_MANIFEST_PUBLIC_KEY_BASE64
+            ).hasValidPinnedPublicKey(),
             signedRuntimeManifestAvailable = false,
             runtimePackageInstalled = false,
             wineAvailable = false,
