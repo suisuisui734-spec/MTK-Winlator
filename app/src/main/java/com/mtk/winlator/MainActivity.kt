@@ -15,6 +15,7 @@ import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import com.mtk.winlator.diagnostics.DeviceDiagnostics
+import com.mtk.winlator.runtime.AndroidGraphicsCapabilities
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -183,7 +184,8 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
 @Composable private fun DevicePage(modifier: Modifier = Modifier) {
     val renderer = remember { readOpenGlRenderer() ?: "Unavailable (GL context could not be created)" }
     val context = androidx.compose.ui.platform.LocalContext.current
-    val vulkanAdvertised = context.packageManager.hasSystemFeature("android.hardware.vulkan.version")
+    val glEsVersion = (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).deviceConfigurationInfo.reqGlEsVersion.let { version -> if (version == 0) null else "${version shr 16}.${version shr 8 and 0xff}" }
+    val graphics = AndroidGraphicsCapabilities.read(context, glEsVersion, null, renderer)
     val memory = DeviceDiagnostics.memory(context)
     val storage = DeviceDiagnostics.internalStorage(context)
     val gpuType = when {
@@ -200,6 +202,7 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
         "ABIs" to Build.SUPPORTED_ABIS.joinToString(),
         "CPU cores" to Runtime.getRuntime().availableProcessors().toString(),
         "Heap limit" to "${Runtime.getRuntime().maxMemory() / 1024 / 1024} MB",
+        "OpenGL ES version" to (graphics.glEsVersion ?: "Unknown"),
         "OpenGL renderer" to renderer,
         "GPU classification" to gpuType,
         "RAM total" to (memory?.let { DeviceDiagnostics.formatBytes(it.totalBytes) } ?: "Unknown"),
@@ -207,14 +210,16 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
         "Low-memory state" to (memory?.lowMemory?.let { if (it) "System reports low memory" else "Normal" } ?: "Unknown"),
         "Internal storage free" to (storage?.let { DeviceDiagnostics.formatBytes(it.first) } ?: "Unknown"),
         "64-bit ABI support" to if (DeviceDiagnostics.is64BitCapable()) "Supported" else "Not reported",
-        "Vulkan feature" to if (vulkanAdvertised) "Advertised by system" else "Not advertised"
+        "Vulkan hardware level" to (graphics.vulkanHardwareLevel?.toString() ?: "Not advertised"),
+        "Vulkan hardware version" to (graphics.vulkanVersion?.toString() ?: "Not advertised"),
+        "Mali renderer match" to if (graphics.likelyMali) "Yes" else "No / unknown"
     )
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Header("Device diagnostics")
         rows.forEach { (label, value) -> Card { Column(Modifier.fillMaxWidth().padding(14.dp)) {
             Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant); Text(value, fontWeight = FontWeight.Medium)
         } } }
-        Text("Vulkan feature flag is a basic system indicator; detailed API/driver testing remains future work.", fontSize = 12.sp)
+        Text("Vulkan values are Android-advertised feature metadata. They do not confirm driver stability or Windows-game compatibility.", fontSize = 12.sp)
     }
 }
 
