@@ -47,3 +47,9 @@
 - Connected the read-only runtime inventory report to the launcher Games page.
 - The UI explicitly reports that no trusted release manifest is configured; it does not infer installation or readiness from files alone.
 - Inventory remains read-only and does not launch or modify runtime files.
+
+
+## Post-install runtime file integrity
+- Runtime installation now records a deterministic SHA-256 inventory for extracted component files after the signed archive digest has been checked.
+- Installer verification and the read-only inventory compare current extracted files against that local record, detecting changed, missing, or added files.
+- A matching local record is not a cryptographic trust anchor against an attacker who can rewrite app-private data; it is a post-install change detector only. Runtime compatibility and Windows execution remain blocked.
