@@ -38,7 +38,10 @@ import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 import org.json.JSONObject
 import com.mtk.winlator.library.GameEntry
+import com.mtk.winlator.library.GameContainerConfigSynchronizer
 import com.mtk.winlator.library.isWindowsExecutableName
+import com.mtk.winlator.runtime.RuntimeContainerRegistryFactory
+import java.util.concurrent.Executors
 
 
 private fun formatFileSize(sizeBytes: Long?): String {
@@ -58,6 +61,27 @@ class MainActivity : ComponentActivity() {
     private val prefs by lazy { getSharedPreferences("mtk_winlator", MODE_PRIVATE) }
     private var games by mutableStateOf<List<GameEntry>>(emptyList())
     private var profile by mutableStateOf("Balanced")
+    private val containerSyncExecutor = Executors.newSingleThreadExecutor()
+
+    private fun synchronizeContainerMetadata(entries: List<GameEntry>) {
+        val snapshot = entries.toList()
+        containerSyncExecutor.execute {
+            val result = runCatching {
+                GameContainerConfigSynchronizer(
+                    RuntimeContainerRegistryFactory.create(applicationContext)
+                ).synchronize(snapshot)
+            }
+            if (result.isFailure || result.getOrNull()?.successful == false) {
+                runOnUiThread {
+                    Toast.makeText(
+                        this,
+                        "Container preferences could not be fully synchronized.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
 
     private val exePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
@@ -90,6 +114,7 @@ class MainActivity : ComponentActivity() {
         val array = JSONArray()
         entries.forEach { entry -> array.put(JSONObject().put("id", entry.id).put("title", entry.title).put("uri", entry.executableUri).put("profile", entry.profileId).put("size", entry.fileSizeBytes ?: -1L).put("graphics_backend", normalizeGraphicsBackend(entry.graphicsBackend)).put("resolution_width", normalizeResolution(entry.resolutionWidth, entry.resolutionHeight).first).put("resolution_height", normalizeResolution(entry.resolutionWidth, entry.resolutionHeight).second).put("memory_limit_percent", normalizeMemoryLimit(entry.memoryLimitPercent))) }
         prefs.edit().putString("games_json", array.toString()).apply()
+        synchronizeContainerMetadata(entries)
     }
     private fun loadGames(): List<GameEntry> = runCatching {
         val stored = prefs.getString("games_json", null)
@@ -113,6 +138,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         games = loadGames()
         if (prefs.getString("games_json", null) == null && games.isNotEmpty()) saveGames(games)
+        else synchronizeContainerMetadata(games)
         profile = prefs.getString("profile", "Balanced") ?: "Balanced"
         setContent {
             MTKApp(games, profile,
