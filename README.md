@@ -22,3 +22,19 @@ Open the repository in Android Studio or run `gradle assembleDebug` in an enviro
 
 ## License/provenance
 This project is independent and not an official Winlator build. Before incorporating Wine, Box64, graphics drivers, or other runtime packages, review upstream licenses and redistribution rules. No third-party runtime binaries are currently bundled.
+
+
+## Upstream Winlator source baseline
+
+The upstream Winlator repository is pinned as a recursive Git submodule at `upstream/winlator`.
+This preserves the upstream app, native source, graphics modules, and installable-component
+metadata without copying third-party binaries into this repository. The Android CI workflow
+checks out nested submodules and builds the upstream Android app separately as a baseline APK.
+
+The existing `:app` module remains the MTK launcher prototype; it is not yet the upstream
+Winlator app and does not execute Windows programs. The upstream baseline build is not a
+MediaTek/Mali-specific integration. Mali compatibility work must be implemented and tested
+against the upstream runtime, especially its graphics-driver selection and VirGL/Vortek paths.
+
+Upstream source: https://github.com/brunodev85/winlator
+Pinned upstream revision: `30aafbdb9eea47b92669201621e03cd2cf04540d`
