@@ -1,22 +1,24 @@
 # MTK Winlator
 
-Android ARM64 launcher project targeting MediaTek Mali / Immortalis devices.
+Independent Android ARM64 launcher project focused on MediaTek Mali / Immortalis devices.
 
-> Status: **launcher foundation only**. Wine/Box64 runtime and Mali graphics backends are not yet integrated. This repository does not currently provide a working Windows-game runtime.
+**Current state:** launcher foundation only. The app currently provides a basic Compose launcher, saved EXE selection, device information, and profile preference. It does **not** execute Windows programs yet. Wine, Box64, container management, and a Mali-specific compatibility backend remain unintegrated.
 
 ## Goals
-- Small native Android launcher (target launcher APK size: 30 MB or less; not guaranteed until measured)
-- ARM64-only Android package
-- Hardware information and GPU renderer detection
-- Game library and SAF EXE selection
-- Modular runtime installer architecture (runtime artifacts are not bundled yet)
-- Diagnostics and per-game profiles planned
+- Native Android UI and launcher APK kept small
+- ARM64 target
+- Device, ABI, memory, and OpenGL renderer diagnostics
+- File picker for executable selection (selection only)
+- Local profile preferences
+- Modular runtime design with package integrity verification planned
+- MediaTek/Mali-specific compatibility work after runtime and licensing review
 
 ## Build
-Requires Android Studio and JDK 17. Open this repository in Android Studio and allow Gradle sync, then build the debug APK.
+- JDK 17
+- Android SDK platform 35
+- Gradle 8.11.1
 
-## Provenance and licensing
-Independent project; not an official Winlator release. Runtime components must be reviewed for license and redistribution compatibility before bundling.
+Open the repository in Android Studio or run `gradle assembleDebug` in an environment with Android SDK configured. GitHub Actions workflow `Android build and validation` builds the debug APK and runs lint.
 
-## Current scope
-UI/launcher scaffold with basic device diagnostics and file selection. Actual Wine/Box64 execution is future integration work.
+## License/provenance
+This project is independent and not an official Winlator build. Before incorporating Wine, Box64, graphics drivers, or other runtime packages, review upstream licenses and redistribution rules. No third-party runtime binaries are currently bundled.
