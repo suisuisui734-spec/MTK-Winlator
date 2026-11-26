@@ -4,6 +4,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val runtimeManifestPublicKey = providers.gradleProperty("RUNTIME_MANIFEST_PUBLIC_KEY_BASE64").orElse("").get()
+require(runtimeManifestPublicKey.isEmpty() || runtimeManifestPublicKey.matches(Regex("^[A-Za-z0-9+/]+={0,2}$"))) {
+    "RUNTIME_MANIFEST_PUBLIC_KEY_BASE64 must be a Base64 value"
+}
+
 android {
     namespace = "com.mtk.winlator"
     compileSdk = 35
@@ -17,8 +22,12 @@ android {
         targetSdk = 35
         versionCode = 2
         versionName = "0.1.1"
+        buildConfigField("String", "RUNTIME_MANIFEST_PUBLIC_KEY_BASE64", "\"$runtimeManifestPublicKey\"")
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     packaging { resources.excludes += setOf("META-INF/LICENSE*", "META-INF/NOTICE*") }
 }
 
