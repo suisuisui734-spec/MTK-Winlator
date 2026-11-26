@@ -78,7 +78,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun normalizeGraphicsBackend(value: String): String =\n        value.uppercase().takeIf { it in setOf("AUTO", "OPENGL", "VULKAN") } ?: "AUTO"\n\n    private fun saveGames(entries: List<GameEntry>) {
+    private fun normalizeGraphicsBackend(value: String): String =
+        value.uppercase().takeIf { it in setOf("AUTO", "OPENGL", "VULKAN") } ?: "AUTO"
+
+    private fun saveGames(entries: List<GameEntry>) {
         val array = JSONArray()
         entries.forEach { entry -> array.put(JSONObject().put("id", entry.id).put("title", entry.title).put("uri", entry.executableUri).put("profile", entry.profileId).put("size", entry.fileSizeBytes ?: -1L).put("graphics_backend", normalizeGraphicsBackend(entry.graphicsBackend))) }
         prefs.edit().putString("games_json", array.toString()).apply()
@@ -110,7 +113,8 @@ class MainActivity : ComponentActivity() {
             MTKApp(games, profile,
                 onPickExe = { exePicker.launch(arrayOf("*/*")) },
                 onRemove = { entry -> games = games.filterNot { it.id == entry.id }; saveGames(games) },
-                onGameProfile = { entry, p -> games = games.map { if (it.id == entry.id) it.copy(profileId = p.lowercase()) else it }; saveGames(games) },\n                onGameGraphicsBackend = { entry, backend -> games = games.map { if (it.id == entry.id) it.copy(graphicsBackend = normalizeGraphicsBackend(backend)) else it }; saveGames(games) },
+                onGameProfile = { entry, p -> games = games.map { if (it.id == entry.id) it.copy(profileId = p.lowercase()) else it }; saveGames(games) },
+                onGameGraphicsBackend = { entry, backend -> games = games.map { if (it.id == entry.id) it.copy(graphicsBackend = normalizeGraphicsBackend(backend)) else it }; saveGames(games) },
                 onProfile = { p -> profile = p; prefs.edit().putString("profile", p).apply() })
         }
     }
@@ -170,7 +174,15 @@ private fun MTKApp(games: List<GameEntry>, profile: String, onPickExe: () -> Uni
                         else OutlinedButton(onClick = { setProfile(entry, p) }) { Text(p, fontSize = 11.sp) }
                     }
                 }
-                Text("Graphics backend preference", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)\n                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {\n                    listOf("AUTO", "OPENGL", "VULKAN").forEach { backend ->\n                        val selectedBackend = entry.graphicsBackend.equals(backend, ignoreCase = true)\n                        if (selectedBackend) Button(onClick = { setGraphicsBackend(entry, backend) }) { Text(backend, fontSize = 10.sp) }\n                        else OutlinedButton(onClick = { setGraphicsBackend(entry, backend) }) { Text(backend, fontSize = 10.sp) }\n                    }\n                }\n                Text("Preferences are saved only; no graphics backend is activated and game launching is not supported yet.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Graphics backend preference", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("AUTO", "OPENGL", "VULKAN").forEach { backend ->
+                        val selectedBackend = entry.graphicsBackend.equals(backend, ignoreCase = true)
+                        if (selectedBackend) Button(onClick = { setGraphicsBackend(entry, backend) }) { Text(backend, fontSize = 10.sp) }
+                        else OutlinedButton(onClick = { setGraphicsBackend(entry, backend) }) { Text(backend, fontSize = 10.sp) }
+                    }
+                }
+                Text("Preferences are saved only; no graphics backend is activated and game launching is not supported yet.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedButton(onClick = { remove(entry) }) { Icon(Icons.Default.Delete, null); Spacer(Modifier.width(6.dp)); Text("Remove") }
             } }
         }
