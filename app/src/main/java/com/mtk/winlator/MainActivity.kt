@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 import org.json.JSONObject
 import com.mtk.winlator.library.GameEntry
+import com.mtk.winlator.library.isWindowsExecutableName
 
 
 private fun formatFileSize(sizeBytes: Long?): String {
@@ -59,7 +60,7 @@ class MainActivity : ComponentActivity() {
     private val exePicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
             val title = queryDisplayName(it) ?: it.lastPathSegment ?: "Selected file"
-            if (!title.substringAfterLast('.', "").equals("exe", ignoreCase = true)) {
+            if (!isWindowsExecutableName(title)) {
                 Toast.makeText(this, "Please select a Windows .exe file.", Toast.LENGTH_LONG).show()
                 return@let
             }
