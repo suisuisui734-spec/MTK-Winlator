@@ -24,7 +24,8 @@
 - [ ] Supply signed manifests and legally redistributable runtime packages
 - [x] Validated declarative ARM64 container preference model with unit tests (does not create or launch containers)
 - [x] Per-game graphics backend preference saved in the launcher library (declarative only)
-- [ ] Apply graphics preferences through a real container lifecycle
+- [x] Per-game resolution and memory-limit preferences saved with validated choices (declarative only)
+- [ ] Apply graphics and memory preferences through a real container lifecycle
 - [ ] Test Mali graphics backend on supported hardware
 - [ ] Touch controls and gamepad mapping
 - [ ] Multi-game persistent library
