@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
         value.uppercase().takeIf { it in setOf("AUTO", "OPENGL", "VULKAN") } ?: "AUTO"
 
     private fun normalizeResolution(width: Int, height: Int): Pair<Int, Int> =
-        if (width to height in listOf(960 to 540, 1280 to 720, 1600 to 900)) width to height else 1280 to 720
+        if ((width to height) in listOf(960 to 540, 1280 to 720, 1600 to 900)) width to height else 1280 to 720
 
     private fun normalizeMemoryLimit(value: Int): Int = value.takeIf { it in setOf(50, 75, 90) } ?: 75
 
