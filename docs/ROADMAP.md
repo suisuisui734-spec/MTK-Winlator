@@ -7,14 +7,15 @@
 - [x] Local profile preference
 - [x] Runtime manifest and installer interface
 - [x] SHA-256 verification helper
-- [x] CI build, unit tests, and Android lint green (run #39)
+- [x] CI build, unit tests, and Android lint green (runs #39–#43)
 - [ ] Test on real MediaTek device
 
 ## Compatibility runtime (not yet implemented)
 - [ ] License/provenance review of Wine, Box64 and graphics components
 - [ ] Integrate Wine/Box64 compatibility core and reproducible ARM64 build pipeline
-- [x] Modular ZIP installer engine with HTTPS, size, SHA-256, safe extraction, and app-private staging
-- [ ] Harden ZIP extraction against duplicate/conflicting archive entry paths
+- [x] Modular ZIP installer engine with HTTPS, size, SHA-256, bounded extraction, safe paths, and app-private staging
+- [x] Reject duplicate and conflicting ZIP archive entry paths
+- [ ] Authenticate runtime manifests with a pinned signing key before accepting package metadata
 - [ ] Supply authenticated manifests and legally redistributable runtime packages
 - [ ] Container creation/lifecycle and per-game settings
 - [ ] Test Mali graphics backend on supported hardware
