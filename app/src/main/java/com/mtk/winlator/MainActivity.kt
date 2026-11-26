@@ -1,5 +1,6 @@
 package com.mtk.winlator
 
+import android.content.Context
 import android.content.Intent
 import android.app.ActivityManager
 import android.opengl.GLES20
