@@ -36,6 +36,20 @@ import org.json.JSONArray
 import org.json.JSONObject
 import com.mtk.winlator.library.GameEntry
 
+
+private fun formatFileSize(sizeBytes: Long?): String {
+    if (sizeBytes == null || sizeBytes < 0L) return "Unknown"
+    if (sizeBytes < 1024L) return "$sizeBytes B"
+    val units = arrayOf("KB", "MB", "GB", "TB")
+    var value = sizeBytes.toDouble() / 1024.0
+    var unitIndex = 0
+    while (value >= 1024.0 && unitIndex < units.lastIndex) {
+        value /= 1024.0
+        unitIndex++
+    }
+    return "%.1f %s".format(value, units[unitIndex])
+}
+
 class MainActivity : ComponentActivity() {
     private val prefs by lazy { getSharedPreferences("mtk_winlator", MODE_PRIVATE) }
     private var games by mutableStateOf<List<GameEntry>>(emptyList())
